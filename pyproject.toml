@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=75", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "applied-ai-systems-portfolio"
+version = "0.1.0"
+description = "Eight independently usable applied AI services with shared production foundations"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+authors = [{name = "Sushant Nemade"}]
+dependencies = [
+  "fastapi>=0.141,<1",
+  "uvicorn>=0.54,<1",
+  "httpx>=0.28,<1",
+  "openai>=3.19,<4",
+  "pypdf>=6.19,<7",
+  "trafilatura>=2.2,<3",
+  "python-multipart>=0.0.32,<1",
+  "python-dotenv>=1.2,<2",
+]
+
+[project.optional-dependencies]
+ml = ["transformers>=4.50,<6", "torch>=2.5,<3"]
+voice = ["faster-whisper>=1.1,<2", "pyttsx3>=2.99,<3"]
+dev = ["pytest>=9,<10", "reportlab>=4.4,<5"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+ai_portfolio = ["static/*.html"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

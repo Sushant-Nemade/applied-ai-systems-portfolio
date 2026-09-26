@@ -1,0 +1,37 @@
+services:
+  api:
+    build: .
+    env_file: .env
+    environment:
+      APP_ENV: production
+      DATA_DIR: /app/data
+      OLLAMA_BASE_URL: http://ollama:11434
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - portfolio_data:/app/data
+    depends_on:
+      - ollama
+    restart: unless-stopped
+  worker:
+    build: .
+    command: ["python", "-m", "ai_portfolio.worker"]
+    env_file: .env
+    environment:
+      APP_ENV: production
+      DATA_DIR: /app/data
+      OLLAMA_BASE_URL: http://ollama:11434
+    volumes:
+      - portfolio_data:/app/data
+    depends_on:
+      - ollama
+    restart: unless-stopped
+  ollama:
+    image: ollama/ollama:latest
+    volumes:
+      - ollama_models:/root/.ollama
+    restart: unless-stopped
+
+volumes:
+  portfolio_data:
+  ollama_models:

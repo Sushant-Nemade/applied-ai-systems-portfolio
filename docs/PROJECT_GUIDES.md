@@ -34,7 +34,7 @@ Set `ALLOWED_FETCH_HOSTS` to domains you may ingest. `POST /news/extract` downlo
 
 ## 6. Local Voice Pipeline
 
-Install `.[voice]`. `POST /voice/transcribe` accepts a mono 16-bit WAV file. A transparent energy gate skips silence; Faster Whisper transcribes speech locally. `POST /voice/respond` adds a local Ollama answer and OS speech synthesis, returning a transcript, answer, and base64 WAV response.
+Install `.[voice]`, download a Piper voice as shown in the README, and set `VOICE_TTS_MODEL` to its `.onnx` file. `POST /voice/transcribe` accepts a mono 16-bit WAV file. A transparent energy gate skips silence; Faster Whisper transcribes speech locally. `POST /voice/respond` adds a local Ollama answer and Piper speech synthesis, returning a transcript, answer, and base64 WAV response.
 
 **Why it matters:** a fully local speech-in → language model → speech-out pipeline. **Limits:** this implementation processes a complete WAV file per request. It does not claim the low-latency streaming behavior of the upstream Hugging Face project. OS TTS needs a speech engine; the Dockerfile includes eSpeak. The STT model downloads on first use. A microphone and real-time latency benchmark were unavailable during development.
 

@@ -2,7 +2,7 @@
 
 Eight original, self-hosted applied AI services in one Python repository. Each project has its own API route and can be used independently. The common FastAPI process provides authentication, configuration, health checks, and OpenAPI documentation.
 
-> **Deployment status:** Source code and automated tests are provided. No public service is hosted from this repository. Model-backed routes need a local Ollama model or an explicitly configured OpenAI API key. The optional sentiment and voice routes need additional local model packages. See [release status](docs/RELEASE_STATUS.md) before calling this production deployed.
+> **Deployment status:** Source code and automated tests are provided. The repository Website link may point to a temporary preview tunnel on the maintainer's computer. Model-backed routes need a local Ollama model or an explicitly configured OpenAI API key. The optional sentiment and voice routes need additional local model packages. See [release status](docs/RELEASE_STATUS.md) before calling this production deployed.
 
 ## Projects
 
@@ -13,7 +13,7 @@ Eight original, self-hosted applied AI services in one Python repository. Each p
 | 3 | News Extractor + Summarizer | `/news` | Allowlists, HTML extraction, keywords, grounded summaries |
 | 4 | AI Code Review Bot | `/pr-review` | Diff review, signed webhook ingestion, durable jobs |
 | 5 | Deep Research Agent | `/research` | Subquestion planning, source collection, cited reports |
-| 6 | Local Voice Pipeline | `/voice` | Audio energy gate, local STT, local LLM, system TTS |
+| 6 | Local Voice Pipeline | `/voice` | Audio energy gate, local STT, local LLM, Piper TTS |
 | 7 | RAG Evaluation Suite | `/rag-eval` | Portable retrieval regression metrics |
 | 8 | LLM Guardrails | `/guardrails` | PII masking, instruction-override checks, tool allowlist |
 
@@ -41,13 +41,16 @@ uvicorn ai_portfolio.api:app --host 127.0.0.1 --port 8000
 
 Open `http://127.0.0.1:8000/ui` for the local dashboard, or `http://127.0.0.1:8000/docs` for the interactive API. Protected endpoints require the `X-API-Key` header. The root catalogue and `/health/*` are public. Ollama runs entirely on the local computer; a model download and suitable memory are required. The application does not silently switch to a paid provider. [Ollama chat API](https://docs.ollama.com/api/chat)
 
+The GitHub repository's Website link may expose `/ui` through a [Cloudflare Quick Tunnel](https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/do-more-with-tunnels/trycloudflare/). The dashboard and API docs can be viewed without a token; project API calls stay authenticated. The tunnel URL works only while the maintainer's computer, API server, and `cloudflared` process are running. A new tunnel may get a different URL, so this link is a temporary preview rather than an always-on deployment.
+
 For sentiment and voice models, install the optional extras:
 
 ```bash
 python -m pip install -e '.[ml,voice,dev]'
+python -m piper.download_voices --data-dir ./voices en_US-lessac-medium
 ```
 
-The first sentiment and transcription calls download model weights. Review the model licenses and hardware requirements before using a model commercially.
+Set `VOICE_TTS_MODEL` in `.env` to the absolute path of `voices/en_US-lessac-medium.onnx` after download. The first sentiment and transcription calls download model weights. Piper is a GPL-3.0-or-later dependency; review its license, the selected voice's license, and hardware requirements before distributing a bundled service.
 
 ## Docker Compose
 
@@ -91,7 +94,7 @@ FastAPI catalogue and eight routers
 ```
 
 - **Single tenant:** one shared API token and one local document index. This avoids implying multi-tenant isolation that is not implemented.
-- **Local default:** Ollama for generation, a local transformer for sentiment, Faster Whisper for transcription, and OS speech synthesis for replies.
+- **Local default:** Ollama for generation, a local transformer for sentiment, Faster Whisper for transcription, and Piper speech synthesis for replies.
 - **Source provenance:** PDF answers return the retrieved document/page excerpts; research reports return source URLs and warn about invalid citation IDs.
 - **Bounded inputs:** file, batch, source, context, and output limits control resource use.
 - **Webhook isolation:** GitHub deliveries are verified and queued. The worker handles model/API work outside the webhook request. Automatic comment posting is off by default.

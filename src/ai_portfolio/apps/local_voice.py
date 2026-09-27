@@ -12,6 +12,7 @@ import tempfile
 import wave
 from array import array
 from functools import lru_cache
+from pathlib import Path
 
 from fastapi import APIRouter, File, HTTPException, UploadFile
 
@@ -59,24 +60,26 @@ def transcribe_audio(wav_bytes: bytes) -> str:
         os.unlink(path)
 
 
-def synthesize(text: str) -> bytes:
+@lru_cache(maxsize=1)
+def tts_voice():
     try:
-        import pyttsx3
+        from piper import PiperVoice
     except ImportError as exc:
         raise RuntimeError("Install the voice extra: pip install '.[voice]'") from exc
-    with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as temporary:
-        path = temporary.name
-    try:
-        engine = pyttsx3.init()
-        engine.save_to_file(text, path)
-        engine.runAndWait()
-        with open(path, "rb") as generated:
-            audio = generated.read()
-        if not audio.startswith(b"RIFF"):
-            raise RuntimeError("System TTS did not produce WAV output")
-        return audio
-    finally:
-        os.unlink(path)
+    model = Path(os.getenv("VOICE_TTS_MODEL", "")).expanduser()
+    if not model.is_file():
+        raise RuntimeError("Set VOICE_TTS_MODEL to a downloaded Piper .onnx voice file")
+    return PiperVoice.load(str(model))
+
+
+def synthesize(text: str) -> bytes:
+    output = io.BytesIO()
+    with wave.open(output, "wb") as wav_file:
+        tts_voice().synthesize_wav(text, wav_file)
+    audio = output.getvalue()
+    if not audio.startswith(b"RIFF"):
+        raise RuntimeError("Piper TTS did not produce WAV output")
+    return audio
 
 
 async def read_wav(file: UploadFile) -> bytes:
